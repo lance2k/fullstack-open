@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { SearchInput } from "./components/SearchInput";
 import { PersonForm } from "./components/PersonForm";
 import { PersonsList } from "./components/PersonsList";
-import axios from "axios";
+import personService from "./services/persons";
 
 function App() {
 	const [persons, setPersons] = useState([]);
@@ -31,23 +31,55 @@ function App() {
 		event.preventDefault();
 
 		if (persons.some((person) => person.name === newName)) {
-			return alert(`${newName} is already added to phonebook`);
+			if (
+				!confirm(
+					`${newName} is already added to phonebook, replace the old number with a new one?`,
+				)
+			) {
+				return;
+			}
+			const selectedPerson = persons.find((p) => p.name === newName);
+
+			const updatedPerson = {
+				...selectedPerson,
+				number: newNumber,
+			};
+
+			return personService
+				.updatePerson(selectedPerson.id, updatedPerson)
+				.then((person) => {
+					setPersons((prev) =>
+						prev.map((p) => (p.id === person.id ? person : p)),
+					);
+				});
 		}
 
-		setPersons(
-			persons.concat({
-				name: newName,
-				number: newNumber,
-				id: persons.length + 1,
-			}),
-		);
+		const newPerson = {
+			name: newName,
+			number: newNumber,
+		};
+
+		personService.addPerson(newPerson).then((person) => {
+			setPersons(persons.concat(person));
+			setNewName("");
+			setNewNumber("");
+		});
+	};
+	const handleDelete = (id) => {
+		const selectedPerson = personsToShow.find((p) => p.id === id);
+
+		if (confirm(`Delete ${selectedPerson.name} ?`)) {
+			personService.deletePerson(id).then((person) => {
+				setPersons(persons.filter((p) => p.id !== person.id));
+			});
+		}
 	};
 
 	useEffect(() => {
-		axios
-			.get("http://localhost:3001/persons")
-			.then((response) => {
-				setPersons(response.data);
+		personService
+			.getAll()
+			.then((person) => {
+				setPersons(person);
 			})
 			.catch((err) => {
 				console.error("An error has occured: ", err);
@@ -69,7 +101,7 @@ function App() {
 				handleNumberChange={handleNumberChange}
 			/>
 			<h2>Numbers</h2>
-			<PersonsList personsToShow={personsToShow} />
+			<PersonsList personsToShow={personsToShow} handleDelete={handleDelete} />
 		</div>
 	);
 }
