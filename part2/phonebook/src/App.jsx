@@ -3,12 +3,15 @@ import { SearchInput } from "./components/SearchInput";
 import { PersonForm } from "./components/PersonForm";
 import { PersonsList } from "./components/PersonsList";
 import personService from "./services/persons";
+import { Notification } from "./components/Notification";
 
 function App() {
 	const [persons, setPersons] = useState([]);
 	const [newName, setNewName] = useState("");
 	const [newNumber, setNewNumber] = useState("");
 	const [searchTerm, setSearchTerm] = useState("");
+	const [message, setMessage] = useState("");
+	const [hasError, setHasError] = useState(false);
 
 	const handleNameChange = (event) => {
 		setNewName(event.target.value);
@@ -51,6 +54,20 @@ function App() {
 					setPersons((prev) =>
 						prev.map((p) => (p.id === person.id ? person : p)),
 					);
+					setMessage(`${person.name} number changed`);
+					setTimeout(() => {
+						setMessage("");
+					}, 5000);
+				})
+				.catch(() => {
+					setHasError(true);
+					setMessage(
+						`Information of ${selectedPerson.name} has already been removed from the server`,
+					);
+					setTimeout(() => {
+						setMessage("");
+						setHasError(false);
+					}, 5000);
 				});
 		}
 
@@ -63,6 +80,10 @@ function App() {
 			setPersons(persons.concat(person));
 			setNewName("");
 			setNewNumber("");
+			setMessage(`Added ${person.name}`);
+			setTimeout(() => {
+				setMessage("");
+			}, 5000);
 		});
 	};
 	const handleDelete = (id) => {
@@ -86,9 +107,15 @@ function App() {
 			});
 	}, []);
 
+	const notificationStyle = hasError ? " error" : " success";
+
 	return (
 		<div>
 			<h2>Phonebook</h2>
+			<Notification
+				className={"message" + notificationStyle}
+				message={message}
+			/>
 			<SearchInput
 				searchTerm={searchTerm}
 				handleSearchChange={handleSearchChange}
