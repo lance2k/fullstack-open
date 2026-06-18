@@ -8,8 +8,8 @@ const baseUrl = "/api";
 const generateId = () => {
 	return (Math.random() * 999).toString();
 };
-
 app.use(express.json());
+app.use(express.static("dist"));
 morgan.token("body", (req) => {
 	return JSON.stringify(req.body);
 });
