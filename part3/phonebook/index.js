@@ -62,8 +62,9 @@ app.delete(`${baseUrl}/persons/:id`, (req, res) => {
 	Persons = Persons.filter((person) => {
 		return person.id !== id;
 	});
-
-	res.status(204).end();
+	res.json({
+		id: id,
+	});
 });
 
 app.get(`${baseUrl}/info`, (req, res) => {
