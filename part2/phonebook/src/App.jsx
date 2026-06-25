@@ -76,15 +76,27 @@ function App() {
 			number: newNumber,
 		};
 
-		personService.addPerson(newPerson).then((person) => {
-			setPersons(persons.concat(person));
-			setNewName("");
-			setNewNumber("");
-			setMessage(`Added ${person.name}`);
-			setTimeout(() => {
-				setMessage("");
-			}, 5000);
-		});
+		personService
+			.addPerson(newPerson)
+			.then((person) => {
+				setPersons(persons.concat(person));
+				setNewName("");
+				setNewNumber("");
+				setMessage(`Added ${person.name}`);
+				setTimeout(() => {
+					setMessage("");
+				}, 5000);
+			})
+			.catch((error) => {
+				const errorMessage = error.response.data.error;
+				console.log(errorMessage);
+				setHasError(true);
+				setMessage(errorMessage);
+				setTimeout(() => {
+					setMessage("");
+					setHasError(false);
+				}, 5000);
+			});
 	};
 	const handleDelete = (id) => {
 		const selectedPerson = personsToShow.find((p) => p.id === id);
